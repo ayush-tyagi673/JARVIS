@@ -1,0 +1,12 @@
+{
+    "user_name": "Ayush",
+    "wake_words": [
+        "jarvis",
+        "jarves",
+        "travis"
+    ],
+    "language": "en-IN",
+    "speech_rate": 175,
+    "ai_model": "gemini-3.5-flash-lite",
+    "max_history": 9
+}
