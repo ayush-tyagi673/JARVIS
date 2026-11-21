@@ -1,3 +1,4 @@
+import urllib.request
 import os
 import re
 import datetime
@@ -22,6 +23,7 @@ APPS = {
     "calculator": "calc",
     "file explorer": "explorer",
     "settings": "start ms-settings:",
+    "whatsapp": "start whatsapp:",
 }
 
 SITES = {
@@ -39,9 +41,32 @@ NOTE_PATTERN = re.compile(
 )
 AI_STARTERS = ("ask ", "explain ", "tell me about ", "who is ", "why ", "how ")
 
+def play_on_youtube(query):
+    """YouTube pe search karke pehla video seedha chalata hai."""
+    search_url = "https://www.youtube.com/results?search_query=" + quote_plus(query)
+    try:
+        request = urllib.request.Request(search_url, headers={"User-Agent": "Mozilla/5.0"})
+        html = urllib.request.urlopen(request, timeout=8).read().decode("utf-8", errors="ignore")
+        match = re.search(r'"videoId":"([\w-]{11})"', html)
+        if match:
+            webbrowser.open(f"https://www.youtube.com/watch?v={match.group(1)}")
+            return
+    except Exception:
+        pass
+    webbrowser.open(search_url)  # seedha na chale toh search page khol do
 
 def handle(command):
     """command lekar (reply_text, exit_flag) return karta hai."""
+        # YouTube pe gaana chalana (sabse pehle check hota hai, taaki "bye" ya "time" jaise words se na takraye)
+    if command.startswith("play "):
+        query = command[5:]
+        for filler in ["on youtube", "youtube"]:
+            query = query.replace(filler, "")
+        query = query.strip()
+        if not query:
+            return "What should I play?", False
+        play_on_youtube(query)
+        return f"Playing {query} on YouTube", False
 
     # Band karna
     if any(w in command for w in ["exit", "quit", "goodbye", "bye", "band karo"]):
@@ -51,6 +76,18 @@ def handle(command):
     if "remind me" in command:
         reply = reminders.add_reminder(command)
         return reply or "Say it like: remind me in 10 minutes to drink water", False
+
+        # Study timer
+    if "timer" in command and any(w in command for w in ["start", "set", "study"]):
+        digits = re.search(r"(\d+)", command)
+        if not digits:
+            return "Say it like: start 50 minute study timer", False
+        minutes = int(digits.group(1))
+        reminders.add_reminder(
+            f"remind me in {minutes} minutes to your study timer is over, take a short break"
+        )
+        return f"Study timer started for {minutes} minutes", False
+    
 
     # Notes
     note_match = NOTE_PATTERN.search(command)
@@ -123,16 +160,16 @@ def handle(command):
         return f"Searching for {query}", False
 
     # Websites aur apps kholna
+        # Apps aur websites kholna (pehle apps check hote hain, taaki "google chrome" Chrome hi khole)
     if "open" in command or "kholo" in command or "start" in command:
-        for name, url in SITES.items():
-            if name in command:
-                webbrowser.open(url)
-                return f"Opening {name}", False
         for name, cmd in APPS.items():
             if name in command:
                 subprocess.Popen(cmd, shell=True)
                 return f"Opening {name}", False
+        for name, url in SITES.items():
+            if name in command:
+                webbrowser.open(url)
+                return f"Opening {name}", False
         return "I do not know that app yet", False
-
     # Baaki sab kuch AI ko bhej do
     return brain.ask(command), False
