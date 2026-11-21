@@ -103,6 +103,12 @@ def handle(command):
             return "You have no notes yet", False
         return "Your last notes are. " + ". ".join(saved), False
 
+        # Ek se zyada kaam ek saath ("open chrome and play lofi") -> AI apne tools se karega
+    action_words = ["open", "kholo", "play", "chalao", "search", "volume", "screenshot", "note", "remind", "timer"]
+    joiners = [" and ", " aur ", " then ", " phir "]
+    if any(j in f" {command} " for j in joiners) and any(a in command for a in action_words):
+        return brain.ask(command), False
+
     # AI ki memory saaf karna
     if "forget everything" in command or "reset memory" in command or "clear memory" in command:
         brain.reset()
