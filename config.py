@@ -10,6 +10,7 @@ DEFAULTS = {
     "language": "en-IN",
     "speech_rate": 175,
     "ai_model": "gemini-3.5-flash-lite",
+    "voice": "en-IN-PrabhatNeural",
     "max_history": 9,
 }
 
@@ -35,3 +36,4 @@ LANGUAGE = _settings["language"]
 SPEECH_RATE = _settings["speech_rate"]
 AI_MODEL = _settings["ai_model"]
 MAX_HISTORY = _settings["max_history"]
+VOICE = _settings["voice"]
